@@ -13,7 +13,7 @@ class NewTweet(BaseModel):
         title="Текст нового твита",
         max_length=6553
     )
-    tweet_media_ids: List[int] = Field(
+    tweet_media_ids: List[str] = Field(
         ...,
         title="Список id-изображений нового твита"
     )

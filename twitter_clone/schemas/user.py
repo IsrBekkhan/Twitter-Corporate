@@ -6,7 +6,11 @@ from schemas.result import Result
 
 
 class User(BaseModel):
-    id: int
+    id: str = Field(
+        ...,
+        title="ID пользователя",
+        max_length=32
+    )
     name: str = Field(
         ...,
         title="Имя пользователя",
@@ -17,13 +21,17 @@ class User(BaseModel):
 
 class UserInfo(User):
     followers: List[Optional[User]]
-    followings: List[Optional[User]]
+    following: List[Optional[User]]
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class UserInfoResult(Result):
     user: UserInfo
+
+
+class NewUserResult(Result):
+    user: User
 
 
 

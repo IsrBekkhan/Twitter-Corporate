@@ -14,7 +14,7 @@ logger.configure(
     handlers=[
         dict(sink=sys.stderr, format=LOG_FORMAT, enqueue=True, level="DEBUG"),
         dict(
-            sink=Path("logger", "twitter_{time:DD-MM-YYYY_HH}.log"),
+            sink=Path("logs", "twitter_{time:DD-MM-YYYY_HH}.log"),
             rotation="1 week",
             retention="2 week",
             compression="zip",

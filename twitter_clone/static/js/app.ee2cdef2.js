@@ -2034,7 +2034,7 @@
                     while (1) switch (e.prev = e.next) {
                         case 0:
                             return e.abrupt("return", B({
-                                type: "delete",
+                                type: "post",
                                 path: "/api/users/".concat(t, "/follow")
                             }));
                         case 1:
@@ -2056,7 +2056,7 @@
                         case 0:
                             return e.abrupt("return", B({
                                 type: "delete",
-                                path: "/api/tweets/".concat(t, "/follow")
+                                path: "/api/users/".concat(t, "/follow")
                             }));
                         case 1:
                         case "end":
@@ -2835,4 +2835,4 @@
     },
     ff65: function(e, t, n) {}
 });
-//# sourceMappingURL=app.7c9275be.js.map
+//# sourceMappingURL=app.ee2cdef2.js.map

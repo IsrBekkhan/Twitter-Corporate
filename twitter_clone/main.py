@@ -25,6 +25,8 @@ from schemas.result import Result
 from schemas.user import UserInfoResult, User as UserSchema, NewUserResult
 from schemas.error import ErrorResult
 
+from utility.create_data import create_data
+
 
 front_app = FastAPI()
 front_app.mount("/", StaticFiles(directory="static", html=True), name="static")
@@ -36,14 +38,31 @@ async def lifespan(app_: FastAPI):
     async with engine.begin() as conn:
         logger.debug("Создание таблиц БД")
         await conn.run_sync(Base.metadata.create_all)
-    # await create_data(users_count=100, images_count=50, tweets_count=100)
+    # await create_data(
+    #     AsyncSessionLocal=AsyncSessionLocal,
+    #     users_count=100,
+    #     images_count=100,
+    #     tweets_count=100,
+    #     subscribe_count=200,
+    #     likes_count=200
+    # )
     yield
     logger.warning("Закрытие приложения")
     await engine.dispose()
     await logger.complete()
 
+COMMON_RESPONSES = {
+    status.HTTP_422_UNPROCESSABLE_ENTITY: {
+        "model": ErrorResult,
+        "description": "Ошибка валидации входных данных"
+    },
+    status.HTTP_400_BAD_REQUEST: {
+        "model": ErrorResult,
+        "description": "Необработанное исключение, возникшее на стороне сервера"
+    }
+}
 
-app = FastAPI(responses={status.HTTP_422_UNPROCESSABLE_ENTITY: {"model": ErrorResult}}, lifespan=lifespan)
+app = FastAPI(responses=COMMON_RESPONSES, lifespan=lifespan)
 
 
 # Database dependency
@@ -240,8 +259,10 @@ async def unfollow_to_user(
     response_description="Успешное добавление нового пользователя",
     status_code=status.HTTP_201_CREATED,
     tags=["Пользователи"],
-    responses={status.HTTP_409_CONFLICT: {
-        "model": ErrorResult, "description": "Ошибка добавления существующего пользователя"}
+    responses={
+        status.HTTP_409_CONFLICT: {
+            "model": ErrorResult, "description": "Ошибка добавления существующего пользователя"
+        }
     }
 )
 async def add_user(user: UserSchema, db_async_session: AsyncSession = Depends(get_db_async_session)) -> Request:
@@ -264,7 +285,7 @@ async def unicorn_exception_handler(request: Request, exc: Exception) -> JSONRes
     error_type = str(type(exc)).split("'")[1]
     content = ErrorResult(result=False, error_type=error_type, error_message=exc.__str__())
     return JSONResponse(
-        status_code=400,
+        status_code=status.HTTP_400_BAD_REQUEST,
         content=jsonable_encoder(content)
     )
 

@@ -1,6 +1,6 @@
 from typing import List, Dict, Any, Optional
 
-from sqlalchemy import delete, select, String, CHAR
+from sqlalchemy import delete, select, String, CHAR, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 from sqlalchemy.exc import IntegrityError, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -144,3 +144,35 @@ class User(Base):
                 .where(follower.c.follower_user_id == follower_user_id)
                 .where(follower.c.following_user_id == following_user_id)
             )
+
+    @classmethod
+    async def get_all_user_ids(cls, db_async_session: AsyncSession) -> List[str]:
+        """
+        Функция, которая возвращает список id всех пользователей в БД
+
+        :param db_async_session: асинхронная сессия подключения к БД
+        :return: список id всех пользователей в БД
+        """
+        logger.debug("Получение списка id всех пользователей из БД")
+
+        async with db_async_session.begin():
+            result = await db_async_session.execute(
+                select(User.id)
+            )
+            return result.scalars().all()
+
+    @classmethod
+    async def get_subscribes_count(cls, db_async_session: AsyncSession) -> int:
+        """
+        Функция, возвращающая количество записей подписок в БД
+
+        :param db_async_session: асинхронная сессия подключения к БД
+        :return: int - количество записей подписок в БД
+        """
+        logger.debug("Получение количества записей подписок в БД")
+
+        async with db_async_session.begin():
+            result = await db_async_session.execute(
+                select(func.count(follower.table_valued()))
+            )
+            return result.scalars().one()

@@ -1,51 +1,25 @@
-import aiofiles
-import aiohttp
-from random import randint
 import asyncio
-from typing import Coroutine
-import json
+from utility.create_data import create_data
+from database import engine, Base, AsyncSessionLocal
+from models.like import Like
+from models.user import User
+from models.tweet import Tweet
+from models.like import Like
 
-fox_url = "https://fish-text.ru/get"
 
-#
-# async def test():
-#     query_params = {
-#         "number": 1
-#     }
-#     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(10)) as client:
-#         async with client.get(fox_url, params=query_params) as response:
-#             print(response.status)
-#             if response.status == 200:
-#                 text = await response.json(encoding="utf-8", content_type="text/html")
-#                 print(text["text"])
-#
-#
-# if __name__ == "__main__":
-#     asyncio.run(test())
+async def data_add_func() -> None:
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+    await create_data(
+        AsyncSessionLocal=AsyncSessionLocal,
+        users_count=100,
+        subscribe_count=200,
+        tweets_count=100,
+        images_count=100,
+        likes_count=200
+    )
 
-# list_d = [{'имя': 'Анна', 'возраст': 25}, {'имя': 'Вас', 'возраст': 30}, {'имя': 'Маша', 'возраст': 18}]
-#
-# sorted_list = sorted(list_d, key=lambda x: len(x["имя"]), reverse=True)
-# print(sorted_list)
 
-# try:
-#     a = 1 / 0
-# except ZeroDivisionError as exc:
-#     typ = type(exc)
-#     t = str(typ).split("'")
-#     print(t[1])
-
-# from uuid import uuid4
-#
-# a = uuid4()
-#
-# print(a)
-# print(a.hex)
-import json
-
-list_ = [{1: "ok"}, {2: "no", 3: "yes"}, [1, 2, 3]]
-print(json.dumps(list_, indent=4))
-from schemas.error import ErrorResult
-
-print(ErrorResult.schema()["properties"])
-print(type(ErrorResult.schema()))
+if __name__ == "__main__":
+    asyncio.run(data_add_func())

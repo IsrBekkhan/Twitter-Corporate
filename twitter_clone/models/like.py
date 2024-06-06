@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, delete
+from sqlalchemy import ForeignKey, delete, select, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.exc import IntegrityError, DBAPIError
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -38,7 +38,9 @@ class Like(Base):
         logger.debug("Добавление лайка: user_id = {}, tweet_id = {}".format(user_id, tweet_id))
         try:
             async with db_async_session.begin():
-                await db_async_session.merge(Like(user_id=user_id, tweet_id=tweet_id))
+                db_async_session.add(
+                    Like(user_id=user_id, tweet_id=tweet_id)
+                )
             return True
         except (IntegrityError, DBAPIError) as exc:
             return False
@@ -59,3 +61,19 @@ class Like(Base):
                 .where(Like.user_id == user_id)
                 .where(Like.tweet_id == tweet_id)
             )
+
+    @classmethod
+    async def get_likes_count(cls, db_async_session: AsyncSession) -> int:
+        """
+        Функция, возвращающая количество записей лайков в БД
+
+        :param db_async_session: асинхронная сессия подключения к БД
+        :return: int - количество записей лайков в БД
+        """
+        logger.debug("Получение количества записей лайков в БД")
+
+        async with db_async_session.begin():
+            result = await db_async_session.execute(
+                select(func.count(Like.user_id))
+            )
+            return result.scalars().one()

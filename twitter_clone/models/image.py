@@ -124,9 +124,26 @@ class Image(Base):
         :return: список относительных путей изображений на диске
         """
         logger.debug("Получение информации из БД об файлах изображений: id твита = {}".format(tweet_id))
+
         async with db_async_session.begin():
             result = await db_async_session.execute(
                 select(Image).where(Image.tweet_id == tweet_id)
             )
             images: List[Optional[Image]] = result.scalars().all()
             return [await cls.__generate_image_path(image.id, image.folder, image.extension) for image in images]
+
+    @classmethod
+    async def get_all_image_ids(cls, db_async_session: AsyncSession) -> List[str]:
+        """
+        Функция, возвращающая список id всех изображений в БД
+
+        :param db_async_session: асинхронная сессия подключения к БД
+        :return: список id всех изображений в БД
+        """
+        logger.debug("Получение списка id всех изображений в БД")
+
+        async with db_async_session.begin():
+            result = await db_async_session.execute(
+                select(Image.id)
+            )
+            return result.scalars().all()

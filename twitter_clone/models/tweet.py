@@ -127,3 +127,19 @@ class Tweet(Base):
 
         ordered_by_likes = sorted(all_tweets, key=lambda x: len(x.likes), reverse=True)
         return ordered_by_likes
+
+    @classmethod
+    async def get_all_tweet_ids(cls, db_async_session: AsyncSession) -> List[int]:
+        """
+        Функция, возвращающая список id всех твитов в БД
+
+        :param db_async_session: асинхронная сессия подключения к БД
+        :return: список id всех твитов в БД
+        """
+        logger.debug("Получение списка id всех твитов в БД")
+
+        async with db_async_session.begin():
+            result = await db_async_session.execute(
+                select(Tweet.id)
+            )
+            return result.scalars().all()

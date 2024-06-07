@@ -72,7 +72,7 @@ async def get_db_async_session():
     try:
         yield db_async_session
     finally:
-        await db_async_session.close()
+        await db_async_session.aclose()
 
 
 @app.get("/api/tweets", response_model=TweetListResult, status_code=status.HTTP_200_OK, tags=["Твиты"])

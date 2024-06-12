@@ -9,12 +9,14 @@ class User(BaseModel):
     id: str = Field(
         ...,
         title="ID пользователя",
-        max_length=32
+        max_length=32,
+        min_length=1
     )
     name: str = Field(
         ...,
         title="Имя пользователя",
-        max_length=20
+        max_length=20,
+        min_length=2
     )
     model_config = ConfigDict(from_attributes=True)
 

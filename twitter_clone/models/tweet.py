@@ -5,6 +5,9 @@ from sqlalchemy import ForeignKey, select, delete, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
+
+from fastapi import HTTPException, status
 
 from database import Base
 from logger import logger
@@ -49,21 +52,42 @@ class Tweet(Base):
         :return: id добавленного в БД твита
         """
         logger.debug("Добавление нового твита в БД: id автора = {}".format(author_id))
-        if tweet_media_ids is None:
-            tweet_media_ids = []
 
-        async with db_async_session.begin():
-            result = await db_async_session.execute(
-                select(Image).where(Image.id.in_(tweet_media_ids))
-            )
-            images = result.scalars().all()
+        try:
+            async with db_async_session.begin():
 
-            new_tweet = Tweet(
-                content=content,
-                author_id=author_id,
-                tweet_media_ids=images
-            )
-            db_async_session.add(new_tweet)
+                if tweet_media_ids:
+                    result = await db_async_session.execute(
+                        select(Image).where(Image.id.in_(tweet_media_ids))
+                    )
+                    images = result.scalars().all()
+
+                    if len(images) != len(set(tweet_media_ids)):
+                        images_str = [image.id for image in images]
+                        not_exist_ids = [image_id for image_id in tweet_media_ids if image_id not in images_str]
+
+                        raise HTTPException(
+                            status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Получен список id изображений, которых не существуeт в БД: {str(not_exist_ids)}"
+                        )
+                else:
+                    images = []
+
+                new_tweet = Tweet(
+                    content=content,
+                    author_id=author_id,
+                    tweet_media_ids=images
+                )
+                db_async_session.add(new_tweet)
+        except IntegrityError as exc:
+            exc_detail = str(exc.orig).split("\n")[1]
+
+            if all([value in exc_detail
+                    for value in (author_id, "author_id", "is not present in table")]):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Пользователя с id {author_id} не существует"
+                )
 
         return new_tweet.id
 
@@ -76,14 +100,25 @@ class Tweet(Base):
         :param author_id: id пользователя, к которому принадлежит твит
         :param tweet_id: id удаляемого твита
         """
+        if await User.is_user_exist(db_async_session, author_id) is False:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Пользователя с id {} не существует".format(author_id)
+            )
+
         logger.debug("Удаление твита из БД: id автора = {}, id твита = {}".format(author_id, tweet_id))
         image_paths = await Image.get_image_paths(db_async_session, tweet_id)
         async with db_async_session.begin():
-            await db_async_session.execute(
+            result = await db_async_session.execute(
                 delete(Tweet)
                 .where(Tweet.author_id == author_id)
                 .where(Tweet.id == tweet_id)
             )
+            if result.rowcount == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Твит с id {} не существует".format(tweet_id)
+                )
             for image_path in image_paths:
                 await Image.delete_image_from_disk(image_path)
 
@@ -97,6 +132,12 @@ class Tweet(Base):
         :param user_id: id текущего пользователя
         :return: список твитов, отсортированных по убыванию количества лайков
         """
+        if not await User.is_user_exist(db_async_session, user_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Пользоватлея с id {user_id} не существует в БД"
+            )
+
         logger.debug("Получение списка твитов пользователя: id пользователя = {}".format(user_id))
         async with db_async_session.begin():
             followings = select(follower.c.following_user_id
@@ -143,3 +184,22 @@ class Tweet(Base):
                 select(Tweet.id)
             )
             return result.scalars().all()
+
+    @classmethod
+    async def get_tweet_by_id(cls, db_async_session: AsyncSession, tweet_id: int) -> Optional["Tweet"]:
+        """
+        Функция, которая возвращает твит по указанному id
+
+        :param db_async_session: асинхронная сессия подключения к БД
+        :param tweet_id: id твита
+        :return: объект твита
+        """
+        logger.debug("Получение твита с id {}".format(tweet_id))
+
+        async with db_async_session.begin():
+            result = await db_async_session.execute(
+                select(Tweet)
+                .options(selectinload(Tweet.tweet_media_ids))
+                .where(Tweet.id == tweet_id)
+            )
+            return result.scalars().one_or_none()

@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional
 
 from sqlalchemy import delete, select, String, CHAR, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
-from sqlalchemy.exc import IntegrityError, DBAPIError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import HTTPException, status
@@ -61,16 +61,23 @@ class User(Base):
         try:
             async with db_async_session.begin():
                 db_async_session.add(new_user)
-        except (IntegrityError, DBAPIError) as exc:
-            logger.warning("Пользователь с именем {} уже существует".format(name))
+        except IntegrityError as exc:
+            if name in str(exc.orig):
+                logger.warning("Пользователь с именем {} уже существует".format(name))
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Пользователь с именем {name} уже существует"
+                )
+            logger.warning("Пользователь с id {} уже существует".format(user_id))
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Пользователь с именем {name} уже существует"
+                detail=f"Пользователь с id {user_id} уже существует"
             )
+
         return new_user
 
     @classmethod
-    async def get_user_data(cls, db_async_session: AsyncSession, user_id: str) -> Optional["User"]:
+    async def get_user_data(cls, db_async_session: AsyncSession, user_id: str) -> "User":
         """
         Функция, которая возвращает полную информацию профиля пользователя
 
@@ -86,7 +93,14 @@ class User(Base):
                 .where(User.id == user_id)
             )
             user = result.scalars().one_or_none()
-            return user
+
+            if user:
+                return user
+
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Пользователь с id {user_id} не существует"
+            )
 
     @classmethod
     async def delete_user(cls, db_async_session: AsyncSession, user_id: str) -> None:
@@ -116,18 +130,50 @@ class User(Base):
             follower_user_id, following_user_id)
         )
         if follower_user_id == following_user_id:
-            return False
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Пользователь не может подписаться сам на себя"
+            )
         try:
             async with db_async_session.begin():
-                await db_async_session.execute(
+                result = await db_async_session.execute(
                     follower.insert().values((follower_user_id, following_user_id))
                 )
         except IntegrityError as exc:
-            return False
+            exc_detail = str(exc.orig).split("\n")[1]
+
+            if all([value in exc_detail
+                    for value in (follower_user_id, "follower_user_id", "is not present in table")]):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Пользователя с id {follower_user_id} не существует"
+                )
+
+            if all([value in exc_detail
+                    for value in (following_user_id, "following_user_id", "is not present in table")]):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Пользователя с id {following_user_id} не существует"
+                )
+
+            if all([value in exc_detail
+                    for value in (
+                            follower_user_id,
+                            following_user_id,
+                            "follower_user_id",
+                            "following_user_id",
+                            "already exists"
+                    )]):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Запись о подписке пользователя с id {follower_user_id} "
+                           f"на пользователя с {following_user_id} уже существует в БД"
+                )
+
         return True
 
     @classmethod
-    async def unfollow(cls, db_async_session: AsyncSession, follower_user_id: str, following_user_id: str) -> None:
+    async def unfollow(cls, db_async_session: AsyncSession, follower_user_id: str, following_user_id: str) -> bool:
         """
         Функция, которая удаляет подписку от пользователя
 
@@ -139,10 +185,17 @@ class User(Base):
             follower_user_id, following_user_id)
         )
         async with db_async_session.begin():
-            await db_async_session.execute(
+            row = await db_async_session.execute(
                 follower.delete()
                 .where(follower.c.follower_user_id == follower_user_id)
                 .where(follower.c.following_user_id == following_user_id)
+            )
+            if row.rowcount != 0:
+                return True
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Запись об отписке пользователя с id {follower_user_id} "
+                       f"от пользователя с {following_user_id} не существует в БД"
             )
 
     @classmethod
@@ -176,3 +229,24 @@ class User(Base):
                 select(func.count(follower.table_valued()))
             )
             return result.scalars().one()
+
+    @classmethod
+    async def is_user_exist(cls, db_async_session: AsyncSession, user_id: str) -> bool:
+        """
+        Функция, которая проверяет существует ли пользователь с заданным id в БД.
+
+        :param db_async_session: асинхронная сессия подключения к БД
+        :param user_id: id пользователя
+        :return: True если пользователь существует, иначе False
+        """
+        logger.debug("Проверка на наличие пользователя с id {} в БД".format(user_id))
+
+        async with db_async_session.begin():
+            result = await db_async_session.execute(
+                select(User).where(User.id == user_id)
+            )
+            user = result.scalars().one_or_none()
+
+        if user:
+            return True
+        return False

@@ -55,9 +55,5 @@ async def filling_tables(db_session):
 
     await create_data(
         AsyncSessionLocal=db_session,
-        users_count=5,
-        subscribe_count=5,
-        tweets_count=5,
-        images_count=5,
-        likes_count=5
+        users_count=1
     )

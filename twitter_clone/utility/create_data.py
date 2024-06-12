@@ -15,6 +15,8 @@ from models.image import Image
 from models.tweet import Tweet
 from models.like import Like
 
+from config import MEDIA_FILE_NAME, GET_FOX_URL, GET_TEXT_URL, GET_TEXT_PARAMS
+
 
 fake = Faker()
 
@@ -113,11 +115,11 @@ async def add_tweet(
 
 async def create_data(
         AsyncSessionLocal: async_scoped_session,
-        users_count: int,
-        subscribe_count: int,
-        tweets_count: int,
-        images_count: int,
-        likes_count: int,
+        users_count: int = 0,
+        subscribe_count: int = 0,
+        tweets_count: int = 0,
+        images_count: int = 0,
+        likes_count: int = 0,
         test_user_added: bool = True
 ) -> None:
     """
@@ -145,17 +147,20 @@ async def create_data(
     # Добавление пользователей
     logger.debug("Добавление пользователей со случайными именами в БД: количество = {}".format(users_count))
     add_user_tasks = []
+    current_users_count = users_count
 
-    for i in range(users_count - 1):
+    if test_user_added:
+        current_users_count -= 1
+        async_session = AsyncSessionLocal()
+        add_user_tasks.append(User.add_user(db_async_session=async_session, name="Testname", user_id="test"))
+
+    for i in range(current_users_count):
         async_session = AsyncSessionLocal()
         user_id = uuid4().hex
         add_user_tasks.append(User.add_user(
             db_async_session=async_session, name=fake.first_name(), user_id=user_id
         ))
 
-    if test_user_added:
-        async_session = AsyncSessionLocal()
-        add_user_tasks.append(User.add_user(db_async_session=async_session, name="Testname", user_id="test"))
     users_result = await asyncio.gather(*add_user_tasks, return_exceptions=True)
 
     async_session = AsyncSessionLocal()
@@ -173,21 +178,19 @@ async def create_data(
         async_session = AsyncSessionLocal()
         subscribe_tasks.append(User.follow(async_session, choice(user_ids), choice(user_ids)))
 
-    subscribe_result = await asyncio.gather(*subscribe_tasks)
+    subscribe_result = await asyncio.gather(*subscribe_tasks, return_exceptions=True)
     subscribe_added_count = len([subscribe for subscribe in subscribe_result if subscribe])
     logger.debug("Добавлено записей {}".format(subscribe_added_count))
     await logger.complete()
 
     # Добавление изображений
     logger.debug("Добавление изображений: количество = {}".format(images_count))
-    file_name = "{image_id}.jpg"
-    fox_url = "https://randomfox.ca/images/{image_id}.jpg"
 
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(10)) as client:
         image_tasks = []
         for _ in range(images_count):
             async_session = AsyncSessionLocal()
-            image_tasks.append(add_image(async_session, client, fox_url, file_name))
+            image_tasks.append(add_image(async_session, client, GET_FOX_URL, MEDIA_FILE_NAME))
 
         images_result = await asyncio.gather(*image_tasks)
 
@@ -200,10 +203,6 @@ async def create_data(
 
     # Добавление твитов
     logger.debug("Добавление твитов: количество = {}".format(tweets_count))
-    api_url = "https://fish-text.ru/get"
-    api_params = {
-        "number": 1
-    }
 
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(10)) as client:
         tweets_tasks = []
@@ -215,8 +214,8 @@ async def create_data(
                 client=client,
                 author_ids=user_ids,
                 image_ids=image_ids,
-                api_url=api_url,
-                api_params=api_params
+                api_url=GET_TEXT_URL,
+                api_params=GET_TEXT_PARAMS
             ))
 
         tweets_result = await asyncio.gather(*tweets_tasks)
@@ -240,7 +239,7 @@ async def create_data(
             tweet_id=choice(tweets_ids)
         ))
 
-    like_results = await asyncio.gather(*likes_tasks)
+    like_results = await asyncio.gather(*likes_tasks, return_exceptions=True)
     likes_added_count = len([like for like in like_results if like])
 
     logger.debug("Добавлено записей лайков: количество = {}".format(likes_added_count))

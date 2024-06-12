@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, conlist
 
 from schemas.result import Result
 from schemas.user import User
@@ -13,7 +13,7 @@ class NewTweet(BaseModel):
         title="Текст нового твита",
         max_length=6553
     )
-    tweet_media_ids: List[str] = Field(
+    tweet_media_ids: conlist(str, max_length=10) = Field(
         ...,
         title="Список id-изображений нового твита"
     )

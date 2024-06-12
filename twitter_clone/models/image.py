@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import date
 from uuid import uuid4
 
-from sqlalchemy import ForeignKey, select, Uuid, CHAR
+from sqlalchemy import ForeignKey, select, Uuid, CHAR, delete
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -72,7 +72,7 @@ class Image(Base):
         return Path(image_folder, image_name).__str__()
 
     @classmethod
-    async def delete_image_from_disk(cls, image_relative_path: str):
+    async def delete_image_from_disk(cls, image_relative_path: str) -> bool:
         """
         Функция для отладки, удаляет файл из указанной директории
 
@@ -83,8 +83,9 @@ class Image(Base):
         await aio_remove(image_path)
         try:
             await aio_rmdir(image_path.parent)
+            return True
         except OSError as exc:
-            pass
+            return False
 
     @classmethod
     async def add_image(cls, db_async_session: AsyncSession, image: bytes, filename: str) -> str | None:
@@ -97,21 +98,18 @@ class Image(Base):
         :return: id сохраненного изображения
         """
         logger.debug("Добаление нового изображения: filename = {}".format(filename))
-        try:
-            async with db_async_session.begin():
-                image_id = uuid4().hex
-                image_extension, image_folder = await cls.__get_extension_and_folder(filename)
-                new_image = Image(
-                    id=image_id,
-                    folder=image_folder,
-                    extension=image_extension
-                )
-                db_async_session.add(new_image)
-                image_relative_path = await cls.__generate_image_path(image_id, image_folder, image_extension)
-                await cls.__save_image_to_disk(image, image_relative_path)
-            return new_image.id
-        except (IntegrityError, OSError) as exc:
-            return None
+        async with db_async_session.begin():
+            image_id = uuid4().hex
+            image_extension, image_folder = await cls.__get_extension_and_folder(filename)
+            new_image = Image(
+                id=image_id,
+                folder=image_folder,
+                extension=image_extension
+            )
+            db_async_session.add(new_image)
+            image_relative_path = await cls.__generate_image_path(image_id, image_folder, image_extension)
+            await cls.__save_image_to_disk(image, image_relative_path)
+        return new_image.id
 
     @classmethod
     async def get_image_paths(cls, db_async_session: AsyncSession, tweet_id: int) -> List[str]:
@@ -124,9 +122,54 @@ class Image(Base):
         :return: список относительных путей изображений на диске
         """
         logger.debug("Получение информации из БД об файлах изображений: id твита = {}".format(tweet_id))
+
         async with db_async_session.begin():
             result = await db_async_session.execute(
                 select(Image).where(Image.tweet_id == tweet_id)
             )
             images: List[Optional[Image]] = result.scalars().all()
             return [await cls.__generate_image_path(image.id, image.folder, image.extension) for image in images]
+
+    @classmethod
+    async def get_all_image_ids(cls, db_async_session: AsyncSession) -> List[str]:
+        """
+        Функция, возвращающая список id всех изображений в БД
+
+        :param db_async_session: асинхронная сессия подключения к БД
+        :return: список id всех изображений в БД
+        """
+        logger.debug("Получение списка id всех изображений в БД")
+
+        async with db_async_session.begin():
+            result = await db_async_session.execute(
+                select(Image.id)
+            )
+            return result.scalars().all()
+
+    @classmethod
+    async def delete_image(cls, db_async_session: AsyncSession, image_id: str) -> bool:
+        """
+        Функция, которая по id удаляет изображение из БД и с диска
+        :param db_async_session:
+        :param image_id:
+        :return:
+        """
+        logger.debug("Удаление изображения: id = {}".format(image_id))
+
+        async with db_async_session.begin():
+            result = await db_async_session.execute(
+                select(Image).where(Image.id == image_id)
+            )
+            image: Image = result.scalars().one_or_none()
+
+            if image:
+                result = await db_async_session.execute(
+                    delete(Image).where(Image.id == image_id)
+                )
+
+                image_path = await cls.__generate_image_path(image.id, image.folder, image.extension)
+                return await cls.delete_image_from_disk(image_path)
+
+            return False
+
+

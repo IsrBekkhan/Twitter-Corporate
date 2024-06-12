@@ -1,3 +1,4 @@
 /.idea/
 /postgres_db/
 /twitter_clone/static/images/
+/twitter_clone/logs/

@@ -1,22 +1,19 @@
 import asyncio
-from random import randint, choice
-from typing import Tuple, Optional, List, Dict
 from asyncio.exceptions import TimeoutError
+from random import choice, randint
+from typing import Dict, List, Optional, Tuple
 from uuid import uuid4
 
 import aiohttp
 from faker import Faker
 from sqlalchemy.ext.asyncio import AsyncSession, async_scoped_session
 
+from config import GET_FOX_URL, GET_TEXT_PARAMS, GET_TEXT_URL, MEDIA_FILE_NAME
 from logger import logger
-
-from models.user import User
 from models.image import Image
-from models.tweet import Tweet
 from models.like import Like
-
-from config import MEDIA_FILE_NAME, GET_FOX_URL, GET_TEXT_URL, GET_TEXT_PARAMS
-
+from models.tweet import Tweet
+from models.user import User
 
 fake = Faker()
 
@@ -37,10 +34,10 @@ async def get_fox(url: str, client: aiohttp.ClientSession) -> Tuple[bytes, int]:
 
 
 async def add_image(
-        db_async_session: AsyncSession,
-        client: aiohttp.ClientSession,
-        url: str,
-        file_name: str
+    db_async_session: AsyncSession,
+    client: aiohttp.ClientSession,
+    url: str,
+    file_name: str,
 ) -> Optional[str]:
     """
     Функция, которая скачивает случайное изображение по указанному URL и передаёт его функции для добавления записи
@@ -55,12 +52,16 @@ async def add_image(
     logger.debug("Добавление нового изображения")
     try:
         image, image_id = await get_fox(url, client)
-        return await Image.add_image(db_async_session, image, file_name.format(image_id=image_id))
-    except TimeoutError as exc:
+        return await Image.add_image(
+            db_async_session, image, file_name.format(image_id=image_id)
+        )
+    except TimeoutError:
         pass
 
 
-async def get_text(client: aiohttp.ClientSession, api_url: str, api_params: Dict) -> str:
+async def get_text(
+    client: aiohttp.ClientSession, api_url: str, api_params: Dict
+) -> str:
     """
     Функция, которая отправляет запрос к указанному URL, и возвращает случайный текст
 
@@ -77,12 +78,12 @@ async def get_text(client: aiohttp.ClientSession, api_url: str, api_params: Dict
 
 
 async def add_tweet(
-        db_async_session: AsyncSession,
-        client: aiohttp.ClientSession,
-        author_ids: List[str],
-        image_ids: List[str],
-        api_url: str,
-        api_params: Dict
+    db_async_session: AsyncSession,
+    client: aiohttp.ClientSession,
+    author_ids: List[str],
+    image_ids: List[str],
+    api_url: str,
+    api_params: Dict,
 ) -> int:
     """
     Функция, которая скачивает по указанному URL случайный текст и сохраняет его в качестве твита в БД
@@ -104,23 +105,20 @@ async def add_tweet(
             random_image_ids = [choice(image_ids) for _ in range(randint(1, 6))]
 
         return await Tweet.add_tweet(
-            db_async_session,
-            choice(author_ids),
-            content,
-            random_image_ids
+            db_async_session, choice(author_ids), content, random_image_ids
         )
-    except TimeoutError as exc:
+    except TimeoutError:
         pass
 
 
 async def create_data(
-        AsyncSessionLocal: async_scoped_session,
-        users_count: int = 0,
-        subscribe_count: int = 0,
-        tweets_count: int = 0,
-        images_count: int = 0,
-        likes_count: int = 0,
-        test_user_added: bool = True
+    AsyncSessionLocal: async_scoped_session,
+    users_count: int = 0,
+    subscribe_count: int = 0,
+    tweets_count: int = 0,
+    images_count: int = 0,
+    likes_count: int = 0,
+    test_user_added: bool = True,
 ) -> None:
     """
     Функция, которая заполняет таблицы БД случайными записями
@@ -141,25 +139,36 @@ async def create_data(
     logger.debug(
         "Заполнение таблиц базы данных тестовыми записями: "
         "users={}, subscribes={}, tweets={}, images={}, likes={}".format(
-            users_count, subscribe_count, tweets_count, images_count, likes_count)
+            users_count, subscribe_count, tweets_count, images_count, likes_count
+        )
     )
 
     # Добавление пользователей
-    logger.debug("Добавление пользователей со случайными именами в БД: количество = {}".format(users_count))
+    logger.debug(
+        "Добавление пользователей со случайными именами в БД: количество = {}".format(
+            users_count
+        )
+    )
     add_user_tasks = []
     current_users_count = users_count
 
     if test_user_added:
         current_users_count -= 1
         async_session = AsyncSessionLocal()
-        add_user_tasks.append(User.add_user(db_async_session=async_session, name="Testname", user_id="test"))
+        add_user_tasks.append(
+            User.add_user(
+                db_async_session=async_session, name="Testname", user_id="test"
+            )
+        )
 
-    for i in range(current_users_count):
+    for _ in range(current_users_count):
         async_session = AsyncSessionLocal()
         user_id = uuid4().hex
-        add_user_tasks.append(User.add_user(
-            db_async_session=async_session, name=fake.first_name(), user_id=user_id
-        ))
+        add_user_tasks.append(
+            User.add_user(
+                db_async_session=async_session, name=fake.first_name(), user_id=user_id
+            )
+        )
 
     users_result = await asyncio.gather(*add_user_tasks, return_exceptions=True)
 
@@ -171,15 +180,23 @@ async def create_data(
     await logger.complete()
 
     # Добавление подписок
-    logger.debug("Добавление записей случайных подписок в БД: количество записей = {}".format(subscribe_count))
+    logger.debug(
+        "Добавление записей случайных подписок в БД: количество записей = {}".format(
+            subscribe_count
+        )
+    )
     subscribe_tasks = []
 
-    for i in range(subscribe_count):
+    for _ in range(subscribe_count):
         async_session = AsyncSessionLocal()
-        subscribe_tasks.append(User.follow(async_session, choice(user_ids), choice(user_ids)))
+        subscribe_tasks.append(
+            User.follow(async_session, choice(user_ids), choice(user_ids))
+        )
 
     subscribe_result = await asyncio.gather(*subscribe_tasks, return_exceptions=True)
-    subscribe_added_count = len([subscribe for subscribe in subscribe_result if subscribe])
+    subscribe_added_count = len(
+        [subscribe for subscribe in subscribe_result if subscribe]
+    )
     logger.debug("Добавлено записей {}".format(subscribe_added_count))
     await logger.complete()
 
@@ -190,7 +207,9 @@ async def create_data(
         image_tasks = []
         for _ in range(images_count):
             async_session = AsyncSessionLocal()
-            image_tasks.append(add_image(async_session, client, GET_FOX_URL, MEDIA_FILE_NAME))
+            image_tasks.append(
+                add_image(async_session, client, GET_FOX_URL, MEDIA_FILE_NAME)
+            )
 
         images_result = await asyncio.gather(*image_tasks)
 
@@ -209,14 +228,16 @@ async def create_data(
 
         for _ in range(tweets_count):
             async_session = AsyncSessionLocal()
-            tweets_tasks.append(add_tweet(
-                db_async_session=async_session,
-                client=client,
-                author_ids=user_ids,
-                image_ids=image_ids,
-                api_url=GET_TEXT_URL,
-                api_params=GET_TEXT_PARAMS
-            ))
+            tweets_tasks.append(
+                add_tweet(
+                    db_async_session=async_session,
+                    client=client,
+                    author_ids=user_ids,
+                    image_ids=image_ids,
+                    api_url=GET_TEXT_URL,
+                    api_params=GET_TEXT_PARAMS,
+                )
+            )
 
         tweets_result = await asyncio.gather(*tweets_tasks)
 
@@ -233,11 +254,13 @@ async def create_data(
 
     for _ in range(likes_count):
         async_session = AsyncSessionLocal()
-        likes_tasks.append(Like.add_like(
-            db_async_session=async_session,
-            user_id=choice(user_ids),
-            tweet_id=choice(tweets_ids)
-        ))
+        likes_tasks.append(
+            Like.add_like(
+                db_async_session=async_session,
+                user_id=choice(user_ids),
+                tweet_id=choice(tweets_ids),
+            )
+        )
 
     like_results = await asyncio.gather(*likes_tasks, return_exceptions=True)
     likes_added_count = len([like for like in like_results if like])
@@ -246,13 +269,15 @@ async def create_data(
     await logger.complete()
 
     # Проверка количества добавленных записей, запрошенных в функции
-    if not all([
-        user_added_count == users_count,
-        tweets_added_count == tweets_count,
-        image_added_count == images_count,
-        subscribe_added_count == subscribe_count,
-        likes_added_count == likes_count
-    ]):
+    if not all(
+        [
+            user_added_count == users_count,
+            tweets_added_count == tweets_count,
+            image_added_count == images_count,
+            subscribe_added_count == subscribe_count,
+            likes_added_count == likes_count,
+        ]
+    ):
         # рекурсивное использование функции в случае, если количество добавленных записей меньше запрошенных
         await create_data(
             AsyncSessionLocal=AsyncSessionLocal,
@@ -261,5 +286,5 @@ async def create_data(
             tweets_count=tweets_count - tweets_added_count,
             images_count=images_count - image_added_count,
             likes_count=likes_count - likes_added_count,
-            test_user_added=False
+            test_user_added=False,
         )

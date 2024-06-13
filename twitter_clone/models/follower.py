@@ -1,7 +1,6 @@
-from sqlalchemy import Column, ForeignKey, Table, CHAR
+from sqlalchemy import CHAR, Column, ForeignKey, Table
 
 from database import Base
-
 
 # follower_user_id: id пользователя, который подписался на пользователя c id following_user_id
 # following_user_id: id пользователя, на который подписался пользователь с id follower_user_id
@@ -12,12 +11,12 @@ follower = Table(
         "follower_user_id",
         CHAR(32),
         ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
-        primary_key=True
+        primary_key=True,
     ),
     Column(
         "following_user_id",
         CHAR(32),
         ForeignKey("users.id", onupdate="CASCADE", ondelete="CASCADE"),
-        primary_key=True
+        primary_key=True,
     ),
 )

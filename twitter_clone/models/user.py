@@ -103,18 +103,22 @@ class User(Base):
             )
 
     @classmethod
-    async def delete_user(cls, db_async_session: AsyncSession, user_id: str) -> None:
+    async def delete_user(cls, db_async_session: AsyncSession, user_id: str) -> bool:
         """
         Функция, которая удаляет пользователя из БД
 
         :param db_async_session: асинхронная сессия подключения к БД
         :param user_id: id удаляемого пользователя
+        :return: bool-евый результат выполнения
         """
         logger.debug("Удаление пользовалея из БД: user_id = {}".format(user_id))
         async with db_async_session.begin():
-            await db_async_session.execute(
+            result = await db_async_session.execute(
                 delete(User).where(User.id == user_id)
             )
+            if result.rowcount == 0:
+                return False
+            return True
 
     @classmethod
     async def follow(cls, db_async_session: AsyncSession, follower_user_id: str, following_user_id: str) -> bool:

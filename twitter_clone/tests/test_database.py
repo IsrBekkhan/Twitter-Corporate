@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from models.user import User
-from models.tweet import Tweet
-from models.like import Like
 from models.image import Image
+from models.like import Like
+from models.tweet import Tweet
+from models.user import User
 
 
 async def test_cascade_delete_tweet_after_delete_user(db_session):
@@ -12,7 +12,9 @@ async def test_cascade_delete_tweet_after_delete_user(db_session):
     name = "Testname_20"
 
     user = await User.add_user(async_session, user_id=user_id, name=name)
-    tweet = await Tweet.add_tweet(async_session, author_id=user.id, content="Some simple text for test...")
+    await Tweet.add_tweet(
+        async_session, author_id=user.id, content="Some simple text for test..."
+    )
 
     tweets_before = await Tweet.get_all_tweet_ids(async_session)
     await User.delete_user(async_session, user_id=user.id)
@@ -31,7 +33,9 @@ async def test_cascade_delete_subscribe_after_delete_user(db_session):
 
     user_1 = await User.add_user(async_session, user_id=user_id_1, name=name_1)
     user_2 = await User.add_user(async_session, user_id=user_id_2, name=name_2)
-    subscribe = await User.follow(async_session, follower_user_id=user_1.id, following_user_id=user_2.id)
+    await User.follow(
+        async_session, follower_user_id=user_1.id, following_user_id=user_2.id
+    )
 
     subscribes_before = await User.get_subscribes_count(async_session)
     await User.delete_user(async_session, user_id=user_1.id)
@@ -44,7 +48,9 @@ async def test_cascade_delete_like_after_delete_tweet(db_session):
     async_session = db_session()
     user_id = "test"
 
-    tweet = await Tweet.add_tweet(async_session, author_id=user_id, content="Some simple text for test...")
+    tweet = await Tweet.add_tweet(
+        async_session, author_id=user_id, content="Some simple text for test..."
+    )
     await Like.add_like(async_session, user_id=user_id, tweet_id=tweet)
 
     likes_before = await Like.get_likes_count(async_session)
@@ -61,7 +67,9 @@ async def test_cascade_delete_like_after_delete_user(db_session):
 
     user = await User.add_user(async_session, user_id=user_id, name=name)
 
-    tweet = await Tweet.add_tweet(async_session, author_id=user.id, content="Some simple text for test...")
+    tweet = await Tweet.add_tweet(
+        async_session, author_id=user.id, content="Some simple text for test..."
+    )
     await Like.add_like(async_session, user_id=user.id, tweet_id=tweet)
 
     likes_before = await Like.get_likes_count(async_session)
@@ -77,18 +85,18 @@ async def test_cascade_delete_image_after_delete_tweet(db_session):
     user_id = "test"
 
     with open(Path("tests", "media", filename), mode="rb") as image_file:
-        image_id = await Image.add_image(async_session, image=image_file.read(), filename=filename)
+        image_id = await Image.add_image(
+            async_session, image=image_file.read(), filename=filename
+        )
 
     tweet_id = await Tweet.add_tweet(
         async_session,
         author_id=user_id,
         content="Some simple text for test...",
-        tweet_media_ids=[image_id]
+        tweet_media_ids=[image_id],
     )
     images_before = await Image.get_all_image_ids(async_session)
     await Tweet.delete_tweet(async_session, author_id=user_id, tweet_id=tweet_id)
     images_after = await Image.get_all_image_ids(async_session)
 
     assert len(images_before) == len(images_after) + 1
-
-

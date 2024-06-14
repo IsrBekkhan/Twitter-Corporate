@@ -1,13 +1,14 @@
-from loguru import logger
-
 import sys
 from pathlib import Path
 
+from loguru import logger
 
-LOG_FORMAT = ("<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level:<8}</level> | "
-              "<white> THREAD: {thread:<15} </white> | "
-              "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
-              "<level>{message}</level>")
+LOG_FORMAT = (
+    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level:<8}</level> | "
+    "<white> THREAD: {thread:<15} </white> | "
+    "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
+    "<level>{message}</level>"
+)
 
 
 logger.configure(
@@ -20,6 +21,7 @@ logger.configure(
             compression="zip",
             level="DEBUG",
             enqueue=True,
-            format=LOG_FORMAT),
+            format=LOG_FORMAT,
+        ),
     ],
 )

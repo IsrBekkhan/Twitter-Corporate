@@ -1,6 +1,20 @@
+import os
+
 from fastapi import status
 
 from schemas.error import ErrorResult
+
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT")
+DB_NAME = os.getenv("DB_NAME")
+TEST_MODE = os.getenv("TEST_MODE")
+
+if TEST_MODE.lower() == "true":
+    TEST_MODE = True
+else:
+    TEST_MODE = False
 
 MEDIA_FILE_NAME = "{image_id}.jpg"
 GET_FOX_URL = "https://randomfox.ca/images/{image_id}.jpg"

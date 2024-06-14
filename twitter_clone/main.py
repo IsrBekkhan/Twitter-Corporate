@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from config import RESPONSES
+from config import RESPONSES, TEST_MODE
 from database import AsyncSessionLocal, Base, engine
 from logger import logger
 from models.image import Image
@@ -34,16 +34,21 @@ async def lifespan(app_: FastAPI):
     logger.info("Запуск приложения")
     async with engine.begin() as conn:
         logger.debug("Создание таблиц БД")
-        # await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
-    # await create_data(
-    #     AsyncSessionLocal=AsyncSessionLocal,
-    #     users_count=100,
-    #     images_count=100,
-    #     tweets_count=200,
-    #     subscribe_count=300,
-    #     likes_count=200,
-    # )
+
+        if TEST_MODE:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+            await create_data(
+                AsyncSessionLocal=AsyncSessionLocal,
+                users_count=100,
+                images_count=100,
+                tweets_count=200,
+                subscribe_count=300,
+                likes_count=200,
+            )
+        else:
+            await conn.run_sync(Base.metadata.create_all)
+
     yield
     logger.warning("Закрытие приложения")
     await engine.dispose()

@@ -37,4 +37,6 @@ class TestPostImageRoute:
         assert response.status_code == 422
         assert response.json()["result"] is False
         assert "HTTPException" in response.json()["error_type"]
-        assert "В запросе отсутствует файл изображения" == response.json()["error_message"]
+        assert (
+            "В запросе отсутствует файл изображения" == response.json()["error_message"]
+        )

@@ -1,6 +1,5 @@
-from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 POSTGRES_URL = "postgresql+asyncpg://admin:admin@localhost:5432/twitter_db"
 
@@ -14,4 +13,3 @@ AsyncSessionLocal = sessionmaker(
     expire_on_commit=False,
 )
 Base = declarative_base()
-

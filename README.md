@@ -22,7 +22,7 @@
 <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat">
 </p>
 
-<img src="./readme_assets/main_page.png" width="75%" align=center>
+<img src="./readme_assets/main_page.png" width="100%">
 
 
 ## Description

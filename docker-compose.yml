@@ -1,14 +1,45 @@
-version: '3.2'
 services:
 
-  postgresql:
-    container_name: postgresql_twitter_db
-    image: postgres
+  twitter_db:
+    container_name: ${POSTGRES_DB}
+    image: postgres:latest
+    restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     ports:
-      - '5432:5432'
+      - '${POSTGRES_PORT}:${POSTGRES_PORT}'
     volumes:
-      - ./postgres_db/:/var/lib/postgresql/data
+      - ./${POSTGRES_DB}/:/var/lib/postgresql/data
+    networks:
+      - twitter_net
+
+  twitter_app:
+    container_name: twitter_app
+    build:
+      context: twitter_clone
+    stop_signal: SIGKILL
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=twitter_db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - FASTAPI_HOST=${FASTAPI_HOST}
+      - FASTAPI_PORT=${FASTAPI_PORT}
+      - TEST_MODE=${TEST_MODE}
+    ports:
+      - "${FASTAPI_PORT}:${FASTAPI_PORT}"
+    volumes:
+      - ./twitter_logs/:/twitter_clone/logs
+      - ./${POSTGRES_DB}/medias/:/twitter_clone/static/images
+    depends_on:
+      - twitter_db
+    networks:
+      - twitter_net
+
+networks:
+  twitter_net:
+    name: twitter_net
+    driver: bridge

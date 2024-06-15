@@ -112,7 +112,7 @@ async def add_tweet(
 
 
 async def create_data(
-    AsyncSessionLocal: async_scoped_session,
+    async_session_local: async_scoped_session,
     users_count: int = 0,
     subscribe_count: int = 0,
     tweets_count: int = 0,
@@ -124,7 +124,7 @@ async def create_data(
     Функция, которая заполняет таблицы БД случайными записями
 
     :rtype: object
-    :param AsyncSessionLocal: экземпляр сессии к БД, которую нужно создать и использовать в функции
+    :param async_session_local: экземпляр сессии к БД, которую нужно создать и использовать в функции
     :param users_count: количество пользователей в БД (Примечание: итоговое количество может быть меньше из-за
                         пропусков совпадений имён)
     :param subscribe_count: количество записей в БД с подписками (Примечание: итоговое количество может быть меньше
@@ -154,15 +154,15 @@ async def create_data(
 
     if test_user_added:
         current_users_count -= 1
-        async_session = AsyncSessionLocal()
+        async_session_t = async_session_local()
         add_user_tasks.append(
             User.add_user(
-                db_async_session=async_session, name="Testname", user_id="test"
+                db_async_session=async_session_t, name="Testname", user_id="test"
             )
         )
 
     for _ in range(current_users_count):
-        async_session = AsyncSessionLocal()
+        async_session = async_session_local()
         user_id = uuid4().hex
         add_user_tasks.append(
             User.add_user(
@@ -172,7 +172,7 @@ async def create_data(
 
     users_result = await asyncio.gather(*add_user_tasks, return_exceptions=True)
 
-    async_session = AsyncSessionLocal()
+    async_session = async_session_local()
     user_ids = await User.get_all_user_ids(async_session)
     user_added_count = len([user for user in users_result if isinstance(user, User)])
 
@@ -188,7 +188,7 @@ async def create_data(
     subscribe_tasks = []
 
     for _ in range(subscribe_count):
-        async_session = AsyncSessionLocal()
+        async_session = async_session_local()
         subscribe_tasks.append(
             User.follow(async_session, choice(user_ids), choice(user_ids))
         )
@@ -206,14 +206,14 @@ async def create_data(
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(10)) as client:
         image_tasks = []
         for _ in range(images_count):
-            async_session = AsyncSessionLocal()
+            async_session = async_session_local()
             image_tasks.append(
                 add_image(async_session, client, GET_FOX_URL, MEDIA_FILE_NAME)
             )
 
         images_result = await asyncio.gather(*image_tasks)
 
-    async_session = AsyncSessionLocal()
+    async_session = async_session_local()
     image_ids = await Image.get_all_image_ids(async_session)
     image_added_count = len([image for image in images_result if image])
 
@@ -227,7 +227,7 @@ async def create_data(
         tweets_tasks = []
 
         for _ in range(tweets_count):
-            async_session = AsyncSessionLocal()
+            async_session = async_session_local()
             tweets_tasks.append(
                 add_tweet(
                     db_async_session=async_session,
@@ -241,7 +241,7 @@ async def create_data(
 
         tweets_result = await asyncio.gather(*tweets_tasks)
 
-    async_session = AsyncSessionLocal()
+    async_session = async_session_local()
     tweets_ids = await Tweet.get_all_tweet_ids(async_session)
     tweets_added_count = len([tweet for tweet in tweets_result if tweet])
 
@@ -253,7 +253,7 @@ async def create_data(
     likes_tasks = []
 
     for _ in range(likes_count):
-        async_session = AsyncSessionLocal()
+        async_session = async_session_local()
         likes_tasks.append(
             Like.add_like(
                 db_async_session=async_session,
@@ -280,7 +280,7 @@ async def create_data(
     ):
         # рекурсивное использование функции в случае, если количество добавленных записей меньше запрошенных
         await create_data(
-            AsyncSessionLocal=AsyncSessionLocal,
+            async_session_local=async_session_local,
             users_count=users_count - user_added_count,
             subscribe_count=subscribe_count - subscribe_added_count,
             tweets_count=tweets_count - tweets_added_count,

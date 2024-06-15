@@ -32,21 +32,23 @@ front_app.mount("/", StaticFiles(directory="static", html=True), name="static")
 @asynccontextmanager
 async def lifespan(app_: FastAPI):
     logger.info("Запуск приложения")
-    async with engine.begin() as conn:
-        logger.debug("Создание таблиц БД")
 
-        if TEST_MODE:
+    if TEST_MODE:
+        async with engine.begin() as conn:
+            logger.debug("Создание таблиц БД")
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
-            await create_data(
-                AsyncSessionLocal=AsyncSessionLocal,
-                users_count=100,
-                images_count=100,
-                tweets_count=200,
-                subscribe_count=300,
-                likes_count=200,
-            )
-        else:
+        await create_data(
+            async_session_local=AsyncSessionLocal,
+            users_count=100,
+            images_count=100,
+            tweets_count=200,
+            subscribe_count=300,
+            likes_count=200,
+        )
+    else:
+        async with engine.begin() as conn:
+            logger.debug("Создание таблиц БД")
             await conn.run_sync(Base.metadata.create_all)
 
     yield
@@ -61,7 +63,7 @@ app = FastAPI(
         **RESPONSES[status.HTTP_422_UNPROCESSABLE_ENTITY],
     },
     lifespan=lifespan,
-    title="Twitter Clone",
+    title="Twitter Corporate",
     summary="Документация API",
     description="Урезанная версия твиттера для использования в корпоративной сети",
     version="0.0.1",

@@ -1,10 +1,19 @@
 <h1 align="center">Twitter Corporate</h1>
   
-![Static Badge](https://img.shields.io/badge/Python-3.10-%23FAE04C?logoColor=%23F1E384&labelColor=%230E7DC8)
 
-<img src="https://img.shields.io/python/made%20by-silentlad-blue.svg" >
+<p align="center">
+
+<img alt="Static Badge" src="https://img.shields.io/badge/Python-3.10-%23FAE04C?logoColor=%23F1E384&labelColor=%230E7DC8">
+  
+<img src="https://img.shields.io/npm/dy/silentlad">
+
+<img src="https://img.shields.io/badge/made%20by-silentlad-blue.svg" >
 
 <img src="https://img.shields.io/badge/vue-2.2.4-green.svg">
+
+<img src="https://badges.frapsoft.com/os/v1/open-source.svg?v=103" >
+
+<img src="https://beerpay.io/silent-lad/VueSolitaire/badge.svg?style=flat">
 
 <img src="https://img.shields.io/github/stars/silent-lad/VueSolitaire.svg?style=flat">
 
@@ -14,6 +23,7 @@
 
 <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat">
 </p>
+
 <p align="center">
 <img src="./readme_assets/main_page.png" width="100%"></p>
 

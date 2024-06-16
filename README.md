@@ -21,8 +21,8 @@
 
 <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat">
 </p>
-
-<img src="./readme_assets/main_page.png" width="100%">
+<p align="center">
+<img src="./readme_assets/main_page.png" width="100%"></p>
 
 ## Описание сервиса
 
@@ -77,12 +77,12 @@ docker compose run --env POSTGRES_USER=admin <service name>
 ## Документация API
 
 Всю документация OpenAPI маршрутов приложения вы можете получить по ссылке http://localhost/8000/docs
-
-<img src="./readme_assets/docs.png" width="100%">
+<p align="center">
+<img src="./readme_assets/docs.png" width="100%"></p>
 
 или по ссылке http://localhost/8000/redoc с другим стилем визуализации
-
-<img src="./readme_assets/redoc.png" width="100%">
+<p align="center">
+<img src="./readme_assets/redoc.png" width="100%"></p>
 
 ## Тестирование
 

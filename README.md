@@ -3,7 +3,8 @@
 
 <p align="center">
 
-<img alt="Static Badge" src="https://img.shields.io/badge/Python-3.10-%23FAE04C?logo=python&logoColor=white&labelColor=%230E7DC8">
+<img alt="Static Badge" src="https://img.shields.io/badge/Python-3.10-%23EAD248?logo=python&logoColor=white&labelColor=%233776AB">
+
 
 <img alt="Static Badge" src="https://img.shields.io/badge/FastAPI-0.110.2-green?logo=fastapi&logoColor=white&labelColor=%23009688">
 

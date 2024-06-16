@@ -1,11 +1,10 @@
 <h1 align="center">Twitter Corporate</h1>
-<h2 align="center">
-
-[![Mentioned in Awesome Vue.js](https://awesome.re/mentioned-badge.svg)](https://github.com/vuejs/awesome-vue)
-
-</h2>
 
 <p align="center">
+
+<a href="https://pypi.org/project/fastapi" target="_blank">
+    <img src="https://img.shields.io/pypi/pyversions/fastapi.svg?color=%2334D058" alt="Supported Python versions">
+</a>
   
 <img src="https://img.shields.io/npm/dy/silentlad">
 

@@ -74,7 +74,7 @@ docker compose run --env POSTGRES_USER=admin <service name>
 
 ## Документация API
 
-Вся документация OpenAPI маршрутов приложения доступна по ссылке http://localhost/8000/docs
+Всю документация OpenAPI маршрутов приложения вы можете получить по ссылке http://localhost/8000/docs
 
 <img src="./readme_assets/docs.png" width="100%">
 

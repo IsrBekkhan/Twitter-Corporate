@@ -81,4 +81,4 @@ npm run serve
 
 ## Обратная связь
 
-По всем вопросам пишите мне на почту: <a href="mailto:israpal@bk.ru" rel="noopener noreferrer" class="link">Contact Бекхан Исрапилов</a>
+По всем вопросам пишите мне на почту: <a href="mailto:israpal@bk.ru" rel="noopener noreferrer" class="link">Бекхан Исрапилов</a>

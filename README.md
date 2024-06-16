@@ -74,11 +74,17 @@ docker compose run --env POSTGRES_USER=admin <service name>
 
 ## Документация API
 
-в работе
+Вся документация OpenAPI маршрутов приложения доступна по ссылке http://localhost/8000/docs
+
+<img src="./readme_assets/docs.png" width="100%">
+
+или по ссылке http://localhost/8000/redoc как с другим стилем визуализации
+
+<img src="./readme_assets/redoc.png" width="100%">
 
 ## Тестирование
 
-Для тестирования работы приложения, необходимо сначала установить все зависимости из файла _.twitter_clone/tests/requirements_for_tests.txt__ командой:
+Для тестирования функций приложения, необходимо сначала установить все зависимости из файла _.twitter_clone/tests/requirements_for_tests.txt__ командой:
 ```
 pip install -r <requiremets file>
 ```

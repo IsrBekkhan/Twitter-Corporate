@@ -46,4 +46,4 @@ async def filling_tables(db_session):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    await create_data(AsyncSessionLocal=db_session, users_count=1)
+    await create_data(async_session_local=db_session, users_count=1)

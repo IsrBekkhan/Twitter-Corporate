@@ -17,6 +17,6 @@ COPY main.py /twitter_clone/
 
 WORKDIR /twitter_clone/
 
-ENV FASTAPI_HOST="127.0.0.1" FASTAPI_PORT=8000
+ENV FASTAPI_HOST="0.0.0.0" FASTAPI_PORT=8000
 
 CMD uvicorn main:app --host=${FASTAPI_HOST} --port=${FASTAPI_PORT}

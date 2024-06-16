@@ -78,7 +78,7 @@ docker compose run --env POSTGRES_USER=admin <service name>
 
 <img src="./readme_assets/docs.png" width="100%">
 
-или по ссылке http://localhost/8000/redoc как с другим стилем визуализации
+или по ссылке http://localhost/8000/redoc с другим стилем визуализации
 
 <img src="./readme_assets/redoc.png" width="100%">
 

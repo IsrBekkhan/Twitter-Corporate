@@ -74,10 +74,7 @@ docker compose run --env POSTGRES_USER=admin <service name>
 
 ## Документация API
 
-```
-npm install
-npm run serve
-```
+в работе
 
 ## Обратная связь
 

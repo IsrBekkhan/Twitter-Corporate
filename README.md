@@ -2,7 +2,7 @@
 
 <p align="center">
   
-<img src="https://img.shields.io/npm/dy/silentlad">
+![Static Badge](https://img.shields.io/badge/Python-3.10-%23FAE04C?logoColor=%23F1E384&labelColor=%230E7DC8)
 
 <img src="https://img.shields.io/python/made%20by-silentlad-blue.svg" >
 

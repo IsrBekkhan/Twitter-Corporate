@@ -7,7 +7,8 @@
 
 <img alt="Static Badge" src="https://img.shields.io/badge/FastAPI-0.110.2-green?logo=fastapi&logoColor=white&labelColor=%23009688">
 
-<img alt="Static Badge" src="https://img.shields.io/badge/PostgreSQL-0.110.2-gray?logo=postgresql&logoColor=white&labelColor=%234169E1">
+<img alt="Static Badge" src="https://img.shields.io/badge/PostgreSQL-16.3-gray?logo=postgresql&logoColor=white&labelColor=%234169E1">
+
 
   
 

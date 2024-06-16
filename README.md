@@ -1,14 +1,10 @@
 <h1 align="center">Twitter Corporate</h1>
 
 <p align="center">
-
-<a href="https://pypi.org/project/fastapi" target="_blank">
-    <img src="https://img.shields.io/pypi/pyversions/fastapi.svg?color=%2334D058" alt="Supported Python versions">
-</a>
   
 <img src="https://img.shields.io/npm/dy/silentlad">
 
-<img src="https://img.shields.io/badge/made%20by-silentlad-blue.svg" >
+<img src="https://img.shields.io/python/made%20by-silentlad-blue.svg" >
 
 <img src="https://img.shields.io/badge/vue-2.2.4-green.svg">
 

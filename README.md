@@ -1,6 +1,4 @@
 <h1 align="center">Twitter Corporate</h1>
-
-<p align="center">
   
 ![Static Badge](https://img.shields.io/badge/Python-3.10-%23FAE04C?logoColor=%23F1E384&labelColor=%230E7DC8)
 

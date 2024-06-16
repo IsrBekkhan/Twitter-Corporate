@@ -26,7 +26,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_HOST=twitter_db
       - POSTGRES_PORT=${POSTGRES_PORT}
-      - FASTAPI_HOST=${FASTAPI_HOST}
       - FASTAPI_PORT=${FASTAPI_PORT}
       - TEST_MODE=${TEST_MODE}
     ports:

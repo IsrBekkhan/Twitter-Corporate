@@ -76,6 +76,17 @@ docker compose run --env POSTGRES_USER=admin <service name>
 
 в работе
 
+## Тестирование
+
+Для тестирования работы приложения, необходимо сначала установить все необходимые зависимости из файла _.twitter_clone/tests/requirements_for_tests.txt__ командой:
+```
+pip install -r <requiremets file>
+```
+Далее из директории twitter_clone c файлом конфигурации pytest.ini необходимо запустить команду:
+```
+pytest -v
+```
+
 ## Обратная связь
 
 По всем вопросам пишите мне на почту: <a href="mailto:israpal@bk.ru" rel="noopener noreferrer" class="link">Бекхан Исрапилов</a>

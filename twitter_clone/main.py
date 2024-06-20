@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from config import RESPONSES, DEMO_MODE
+from config import DEMO_MODE, RESPONSES
 from database import AsyncSessionLocal, Base, engine
 from logger import logger
 from models.image import Image

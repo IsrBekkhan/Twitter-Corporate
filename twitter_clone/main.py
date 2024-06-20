@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from config import RESPONSES, TEST_MODE
+from config import RESPONSES, DEMO_MODE
 from database import AsyncSessionLocal, Base, engine
 from logger import logger
 from models.image import Image
@@ -33,7 +33,7 @@ front_app.mount("/", StaticFiles(directory="static", html=True), name="static")
 async def lifespan(app_: FastAPI):
     logger.info("Запуск приложения")
 
-    if TEST_MODE:
+    if DEMO_MODE:
         async with engine.begin() as conn:
             logger.debug("Создание таблиц БД")
             await conn.run_sync(Base.metadata.drop_all)

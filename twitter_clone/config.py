@@ -9,7 +9,7 @@ POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 POSTGRES_HOST = os.getenv("POSTGRES_HOST")
 POSTGRES_PORT = os.getenv("POSTGRES_PORT")
 POSTGRES_DB = os.getenv("DB_NAME")
-TEST_MODE = os.getenv("TEST_MODE")
+DEMO_MODE = os.getenv("DEMO_MODE")
 
 if POSTGRES_USER is None:
     POSTGRES_USER = "admin"
@@ -26,13 +26,13 @@ if POSTGRES_PORT is None:
 if POSTGRES_DB is None:
     POSTGRES_DB = "twitter_db"
 
-if TEST_MODE is None:
-    TEST_MODE = False
+if DEMO_MODE is None:
+    DEMO_MODE = False
 else:
-    if TEST_MODE.lower() == "true":
-        TEST_MODE = True
+    if DEMO_MODE.lower() == "true":
+        DEMO_MODE = True
     else:
-        TEST_MODE = False
+        DEMO_MODE = False
 
 MEDIA_FILE_NAME = "{image_id}.jpg"
 GET_FOX_URL = "https://randomfox.ca/images/{image_id}.jpg"

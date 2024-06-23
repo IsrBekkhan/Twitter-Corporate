@@ -1,4 +1,5 @@
 from datetime import date
+from io import BytesIO
 from pathlib import Path
 from typing import List, Optional, Tuple
 from uuid import uuid4
@@ -6,6 +7,9 @@ from uuid import uuid4
 import aiofiles
 from aiofiles.os import remove as aio_remove
 from aiofiles.os import rmdir as aio_rmdir
+from fastapi import HTTPException, status
+from PIL import Image as PillowImage
+from PIL import UnidentifiedImageError
 from sqlalchemy import CHAR, ForeignKey, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -110,6 +114,15 @@ class Image(Base):
         :return: id сохраненного изображения
         """
         logger.debug("Добаление нового изображения: filename = {}".format(filename))
+
+        try:
+            PillowImage.open(BytesIO(image))
+        except UnidentifiedImageError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="В запросе отсутствует файл изображения",
+            )
+
         async with db_async_session.begin():
             image_id = uuid4().hex
             image_extension, image_folder = await cls.__get_extension_and_folder(

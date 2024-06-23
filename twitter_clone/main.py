@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, File, Header, Path, Request, UploadFile, status
 from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import HTTPException, RequestValidationError
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -241,11 +241,6 @@ async def post_image(
     Добавление изображения в приложение: сохраняет его в папке images и добавляет об этом запись в БД
 
     """
-    if file.size < 1024:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="В запросе отсутствует файл изображения",
-        )
     logger.debug("Добавление изображения: file_name = {}".format(file.filename))
     image_id = await Image.add_image(db_async_session, await file.read(), file.filename)
     await logger.complete()

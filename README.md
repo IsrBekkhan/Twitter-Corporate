@@ -13,6 +13,8 @@
 
 <img alt="Static Badge" src="https://img.shields.io/badge/PostgreSQL-16.3-gray?logo=postgresql&logoColor=white&labelColor=%234169E1">
 
+<img alt="Static Badge" src="https://img.shields.io/badge/pytest-8.1.2-%23c7d302?logo=pytest&logoColor=white&labelColor=%230A9EDC">
+
 </p>
 
 <p align="center">

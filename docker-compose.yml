@@ -8,12 +8,11 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+      - PGDATA=/var/lib/postgresql/data/pgdata
     ports:
-      - '${POSTGRES_PORT}:${POSTGRES_PORT}'
+      - '${POSTGRES_PORT}:5432'
     volumes:
       - ./${POSTGRES_DB}/:/var/lib/postgresql/data
-    networks:
-      - twitter_net
 
   twitter_app:
     container_name: twitter_app
@@ -24,21 +23,13 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_HOST=twitter_db
       - POSTGRES_PORT=${POSTGRES_PORT}
       - FASTAPI_PORT=${FASTAPI_PORT}
       - DEMO_MODE=${DEMO_MODE}
     ports:
-      - "${FASTAPI_PORT}:${FASTAPI_PORT}"
+      - "${FASTAPI_PORT}:80"
     volumes:
       - ./twitter_logs/:/twitter_clone/logs
       - ./${POSTGRES_DB}/medias/:/twitter_clone/static/images
     depends_on:
       - twitter_db
-    networks:
-      - twitter_net
-
-networks:
-  twitter_net:
-    name: twitter_net
-    driver: bridge
